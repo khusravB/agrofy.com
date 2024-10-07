@@ -93,7 +93,7 @@ def AnalyseMyField(request, field_id):
     seeds_data = [{'id': seed.id, 'name': seed.name} for seed in seeds]
     content = "Пожалуйста дай оценку для поля по этим данным. Анализ в любом случае должен быть даже если данных мало. Знай что данные 100% верны. Ответ должен быть на русском и содержать либо 'да' либо 'нет'. Также дай рейтинг от 0 до 100. Также не указывай нигде дату. И не жалуйся на то что данных мало. Если да то дай рекомендации по максимизированию урожая если он хочет посадить:" + str(seeds_data) + "Ниже будет данные поля от MODIS." + data_str + data_str1
     completion = client.chat.completions.create(
-        model="gpt-4o",
+        model="o1-preview-mini",
         messages=[
             {"role": "system", "content": content},
 
