@@ -18,3 +18,13 @@ class Field(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
 
 
+class Answers(models.Model):
+    body = models.TextField()
+    author = models.ForeignKey(User, on_delete=models.CASCADE)
+
+
+class Question(models.Model):
+    title = models.TextField(default="")
+    author = models.ForeignKey(User, on_delete=models.CASCADE)
+    answers = models.ManyToManyField(Answers, blank=True, null=True)
+

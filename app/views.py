@@ -8,6 +8,7 @@ from rest_framework.viewsets import GenericViewSet
 from rest_framework.permissions import IsAuthenticatedOrReadOnly, IsAdminUser, IsAuthenticated
 from .models import *
 from .serializers import *
+from django.shortcuts import get_object_or_404
 import openai
 from datetime import datetime
 import math
@@ -31,23 +32,6 @@ class AddSeedView(APIView):
             field = Field.objects.get(id=field_id)
             field.seeds.add(seed)
             field.save()
-            load_dotenv()
-
-            client = openai.OpenAI()
-            #key = "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"
-            openai.api_key = os.getenv("OPENAI_API_KEY")
-            completion = client.chat.completions.create(
-                model="gpt-4o-mini",
-                messages=[
-                    {"role": "system", "content": "You are a helpful assistant."},
-                    {
-                        "role": "user",
-                        "content": "Write a haiku about recursion in programming."
-                    }
-                ]
-            )
-
-            print(completion.choices[0].message)
 
             return Response({'status': 'success', 'message': 'Seed added to Your Field'}, status=status.HTTP_200_OK)
         except User.DoesNotExist:
@@ -56,6 +40,7 @@ class AddSeedView(APIView):
             return Response({'status': 'error', 'message': 'Your Field not found'}, status=status.HTTP_404_NOT_FOUND)
         except Exception as e:
             return Response({'status': 'error', 'message': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
 
 @api_view(['GET', 'POST'])
 def AnalyseMyField(request, field_id):
@@ -118,3 +103,45 @@ def AnalyseMyField(request, field_id):
     print(completion.choices[0].message)
 
     return Response({'status': 'success', 'message': completion.choices[0].message}, status=status.HTTP_200_OK)
+
+
+class SeedViewSet(viewsets.ModelViewSet):
+    queryset = Seed.objects.all()
+    serializer_class = SeedSerializer
+
+
+class QuestionViewSet(viewsets.ModelViewSet):
+    queryset = Question.objects.all()
+    serializer_class = QuestionSerializer
+
+
+class AnswerViewSet(viewsets.ModelViewSet):
+    queryset = Answers.objects.all()
+    serializer_class = AnswerSerializer
+
+
+class AddAnswerView(APIView):
+    def post(self, request, answer_id, question_id, *args, **kwargs):
+        user_id = request.user.id
+        try:
+            question = Question.objects.get(id=question_id)
+            answer = Answers.objects.get(id=answer_id)
+            question.answers.add(answer)
+            question.save()
+
+            return Response({'status': 'success', 'message': 'Thank you for your Answer'}, status=status.HTTP_200_OK)
+        except Question.DoesNotExist:
+            return Response({'status': 'error', 'message': 'Question not found'}, status=status.HTTP_404_NOT_FOUND)
+        except Answers.DoesNotExist:
+            return Response({'status': 'error', 'message': 'Cannot add answer to this question'}, status=status.HTTP_404_NOT_FOUND)
+        except Exception as e:
+            return Response({'status': 'error', 'message': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+
+@api_view(['GET'])
+def question_detail_api(request, question_id):
+    question = get_object_or_404(Question, id=question_id)
+
+    serializer = QuestionAnswersSerializer(question)
+
+    return Response(serializer.data)

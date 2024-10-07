@@ -11,3 +11,35 @@ class FieldsSerializer(serializers.ModelSerializer):
     class Meta:
         model = Field
         fields = "__all__"
+
+
+class SeedSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Seed
+        fields = "__all__"
+
+
+class QuestionSerializer(serializers.ModelSerializer):
+    author = serializers.HiddenField(default=serializers.CurrentUserDefault())
+
+    class Meta:
+        model = Question
+        fields = "__all__"
+
+
+
+class AnswerSerializer(serializers.ModelSerializer):
+    author = serializers.HiddenField(default=serializers.CurrentUserDefault())
+
+    class Meta:
+        model = Answers
+        fields = "__all__"
+
+
+class QuestionAnswersSerializer(serializers.ModelSerializer):
+    author = serializers.HiddenField(default=serializers.CurrentUserDefault())
+    answers = AnswerSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = Question
+        fields = "__all__"
