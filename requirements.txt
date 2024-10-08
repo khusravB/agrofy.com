@@ -50,3 +50,4 @@ uritemplate==4.1.1
 urllib3==2.2.2
 whitenoise==6.7.0
 django-cors-headers==4.4.0
+tiktoken==0.8.0
