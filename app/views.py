@@ -17,6 +17,7 @@ from dotenv import load_dotenv, dotenv_values
 import requests
 import json
 from rest_framework.decorators import api_view
+import tiktoken
 
 
 class FieldsViewSet(viewsets.ModelViewSet):
@@ -42,7 +43,7 @@ class AddSeedView(APIView):
             return Response({'status': 'error', 'message': str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
 
-@api_view(['GET', 'POST'])
+@api_view(['GET'])
 def AnalyseMyField(request, field_id):
 
 
@@ -89,13 +90,24 @@ def AnalyseMyField(request, field_id):
     data_str1 = json.dumps(data1)
     seeds = field.seeds.all()
 
-    # Преобразуем данные связанных объектов в список для последующего использования
+    encoding = tiktoken.encoding_for_model("gpt-4o")
     seeds_data = [{'id': seed.id, 'name': seed.name} for seed in seeds]
+    
+    
     content = "Пожалуйста дай оценку для поля по этим данным. Анализ в любом случае должен быть даже если данных мало. Знай что данные 100% верны. Ответ должен быть на русском и содержать либо 'да' либо 'нет'. Также дай рейтинг от 0 до 100. Также не указывай нигде дату. И не жалуйся на то что данных мало. Если да то дай рекомендации по максимизированию урожая если он хочет посадить:" + str(seeds_data) + "Ниже будет данные поля от MODIS." + data_str + data_str1
+    
+    
+    tokens = encoding.encode(content)
+    
+    if len(tokens) > 30000:
+        tokens = tokens[:30000]  # Срезаем до 30 000 токенов
+    
+    trimmed_text = encoding.decode(tokens)
+    
     completion = client.chat.completions.create(
         model="gpt-4o",
         messages=[
-            {"role": "system", "content": content},
+            {"role": "system", "content": trimmed_text},
 
         ]
     )
